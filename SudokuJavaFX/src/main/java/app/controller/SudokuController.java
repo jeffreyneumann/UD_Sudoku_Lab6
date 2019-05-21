@@ -66,6 +66,7 @@ public class SudokuController implements Initializable {
 
 	private eGameDifficulty eGD = null;
 	private Sudoku s = null;
+	private Sudoku s1 = null;
 
 	public void setMainApp(Game game) {
 		this.game = game;
@@ -100,8 +101,16 @@ public class SudokuController implements Initializable {
 	private void CreateSudokuInstance() {
 		eGD = this.game.GetGameDifficulty();
 		s = game.StartSudoku(this.game.GetGameSize(), eGD);
+		
+		
+		//This is the problem portion. It is referencing it instead of copying it. If it did copy it, this code would work flawlessly.
+		//This is to help the code determine if a value is from the origional sudoku and shouldn't be deleted, or if it has been added and 
+		//can be deleted.
+		s1 = s;
 	}
 
+	
+	
 	/**
 	 * BuildGrid - This method will bild all the grid objects (top/sudoku/numbers)
 	 * 
@@ -239,9 +248,16 @@ public class SudokuController implements Initializable {
 			public void handle(DragEvent event) {
 				Dragboard db = event.getDragboard();
 				boolean success = false;
+				
 				if (db.hasContent(myTrashCanFormat)) {
 					Cell CellFrom = (Cell) db.getContent(myTrashCanFormat);
-
+					System.out.println(CellFrom.getiRow() + ":" + CellFrom.getiCol());
+					System.out.println(s1.getPuzzle()[CellFrom.getiRow()][CellFrom.getiCol()]);
+					
+					if (s1.getPuzzle()[CellFrom.getiRow()][CellFrom.getiCol()] == 0) {
+						game.getSudoku().getPuzzle()[CellFrom.getiRow()][CellFrom.getiCol()] = 0;
+					}
+					
 					game.getSudoku().PrintPuzzle();
 					event.setDropCompleted(success);
 					event.consume();
@@ -327,12 +343,40 @@ public class SudokuController implements Initializable {
 				// (show the circle-with-line-through)
 				paneTarget.setOnDragOver(new EventHandler<DragEvent>() {
 					public void handle(DragEvent event) {
+						
+						
+						
 						if (event.getGestureSource() != paneTarget && event.getDragboard().hasContent(myFormat)) {
 							// Don't let the user drag over items that already have a cell value set
-							if (paneTarget.getCell().getiCellValue() == 0) {
-								event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+							
+							Dragboard db = event.getDragboard();
+							Cell CellFrom = (Cell) db.getContent(myFormat);
+							
+							if (game.getShowHints()) {
+								if ((paneTarget.getCell().getiCellValue() == 0) && (s.isValidValue(paneTarget.getCell().getiRow(), paneTarget.getCell().getiCol(), CellFrom.getiCellValue()))) {
+									//game.getSudoku().getPuzzle()[paneTarget.getCell().getiRow()][paneTarget.getCell().getiCol()] = CellFrom.getiCellValue();
+									event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+									//game.getSudoku().PrintPuzzle();
+								}
 							}
+							else {
+								if (paneTarget.getCell().getiCellValue() == 0) {
+									//game.getSudoku().getPuzzle()[paneTarget.getCell().getiRow()][paneTarget.getCell().getiCol()] = CellFrom.getiCellValue();
+									event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+									//game.getSudoku().PrintPuzzle();
+									if (!(s.isValidValue(paneTarget.getCell().getiRow(), paneTarget.getCell().getiCol(), CellFrom.getiCellValue()))) {
+										game.getSudoku().AddMistake();
+									}
+								}
+							}
+							
+							
+							
 						}
+						
+						
+						
+						
 						event.consume();
 					}
 				});
@@ -374,7 +418,10 @@ public class SudokuController implements Initializable {
 						Dragboard db = event.getDragboard();
 						boolean success = false;
 						Cell CellTo = (Cell) paneTarget.getCell();
-
+						Cell CellFrom = (Cell) db.getContent(myFormat);
+						
+						game.getSudoku().getPuzzle()[paneTarget.getCell().getiRow()][paneTarget.getCell().getiCol()] = CellFrom.getiCellValue();
+						
 						// TODO: This is where you'll find mistakes.
 						// Keep track of mistakes... as an attribute of Sudoku... start the attribute
 						// at zero, and expose a AddMistake(int) method in Sudoku to add the mistake
@@ -383,12 +430,12 @@ public class SudokuController implements Initializable {
 						// mistakes, medium 4, etc)
 						// If the number of mistakes >= max mistakes, end the game
 						if (db.hasContent(myFormat)) {
-							Cell CellFrom = (Cell) db.getContent(myFormat);
+							//Cell CellFrom = (Cell) db.getContent(myFormat);
 
 							if (!s.isValidValue(CellTo.getiRow(), CellTo.getiCol(), CellFrom.getiCellValue())) {
 
 								// Add a mistake
-								game.getSudoku().AddMistake();
+								//game.getSudoku().AddMistake();
 								BuildTopGrid();
 
 								// TODO: Set the message for mistakes

@@ -95,7 +95,8 @@ public class Sudoku extends LatinSquare implements Serializable {
 		this.eGD  = eGD;
 		RemoveZeros();
 	}
-
+	
+	
 	/**
 	 * Sudoku - pass in a given two-dimensional array puzzle, create an instance.
 	 * Set iSize and iSqrtSize
@@ -394,7 +395,7 @@ public class Sudoku extends LatinSquare implements Serializable {
 
 	/**
 	 * isValidValue - overload isValidValue, call by Cell
-	 * 
+	 * F
 	 * @version 1.4
 	 * @since Lab #4
 	 * @param c
@@ -453,7 +454,7 @@ public class Sudoku extends LatinSquare implements Serializable {
 		}
 		System.out.println("");
 	}
-
+	
 	/**
 	 * FillDiagonalRegions - After the puzzle is created, set the diagonal regions
 	 * with random values
